@@ -1,0 +1,7 @@
+db/*
+.idea
+ftdc-utils/*
+old/*
+pythonenv/*
+samples/*
+ftdc

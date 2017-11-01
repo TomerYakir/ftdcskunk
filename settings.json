@@ -1,0 +1,100 @@
+{
+  "metricsSettings":
+  {
+    "serverStatus.opcounters.insert": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "inserts_per_sec"
+    },
+    "serverStatus.opcounters.query": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "queries_per_sec"
+    },
+    "serverStatus.opcounters.delete": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "deletes_per_sec"
+    },
+    "serverStatus.opcounters.update": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "updates_per_sec"
+    },
+    "serverStatus.opcounters.getmore": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "getmore_per_sec"
+    },
+    "serverStatus.opcounters.command": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "commands_per_sec"
+    },
+    "serverStatus.connections.current": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "connections_per_sec"
+    },
+    "serverStatus.connections.available": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "connections_available"
+    },
+    "serverStatus.uptimeMillis": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "thresholdBelow",
+      "thresholdValue": 100,
+      "export_name": "server_uptime"
+    },
+    "serverStatus.mem.resident": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_mem_usage"
+    },
+    "serverStatus.wiredTiger.cache.bytes currently in the cache": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_cache_bytes"
+    },
+    "serverStatus.wiredTiger.cache.bytes read into cache": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_cache_read_bytes"
+    },
+    "serverStatus.wiredTiger.cache.pages written from cache": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_cache_write_bytes"
+    },
+    "serverStatus.wiredTiger.transaction.transaction checkpoints skipped because database was clean": {
+      "raw_value_type": "per_sec",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_checkpoint_skipped"
+    },
+    "serverStatus.globalLock.currentQueue.readers": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "thresholdAbove",
+      "thresholdValue": 10,
+      "export_name": "server_queued_readers"
+    },
+    "serverStatus.globalLock.activeClients.readers": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_active_readers"
+    },
+    "serverStatus.globalLock.currentQueue.writers": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "thresholdAbove",
+      "thresholdValue": 10,
+      "export_name": "server_queued_writers"
+    },
+    "serverStatus.globalLock.activeClients.writers": {
+      "raw_value_type": "raw",
+      "outlier_detection_method": "z-test",
+      "export_name": "server_active_writers"
+    }
+  },
+  "z-test-stdev-factor": 3,
+  "z-test-outlier-threshold": 0.5
+}
