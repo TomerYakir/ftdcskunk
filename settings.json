@@ -146,7 +146,7 @@
       "title": "#"
     },
     "serverStatus.metrics.queryExecutor.scannedObjects": {
-      "raw_value_type": "raw",
+      "raw_value_type": "per_sec",
       "outlier_detection_method": "z-test",
       "export_name": "server_scanned_objects",
       "code": "U",

@@ -28,7 +28,7 @@ def load_json_data():
     client = MongoClient('mongodb://localhost:30000/')
     db = client['ftdc']
     collection = db.ftdc
-    for doc in collection.find():
+    for doc in collection.find().sort("start",1):
         json_data.append(doc)
     return json_data
 
@@ -83,6 +83,7 @@ def add_metric_to_timeseries(key, metric, setting, timestamp):
         metrics[key] = {
             "values": [],
             "values_for_chart": [],
+            "raw_values": [metric],
             "outliers": [],
             "z_scores": [],
             "checked": False,
@@ -94,10 +95,9 @@ def add_metric_to_timeseries(key, metric, setting, timestamp):
             "code": setting["code"]
         }
     if setting["raw_value_type"] == "per_sec": # assumption - data is continuous
-        if len(metrics[key]["values"]):
-            prev_value = metrics[key]["values"][-1]
-        else:
-            prev_value = 0
+        prev_value = metrics[key]["raw_values"][-1]
+        #print("%s: prev %s, metric %s, per_sec %s" % (key, prev_value, metric, metric - prev_value))
+        metrics[key]["raw_values"].append(metric)
         metric = metric - prev_value
     metrics[key]["values"].append(metric)
     metrics[key]["values_for_chart"].append({
