@@ -295,7 +295,6 @@ serverStatus.metrics.commands.count.total
 serverStatus.metrics.commands.create.failed
 serverStatus.metrics.commands.create.total
 serverStatus.metrics.commands.createIndexes.failed
-serverStatus.metrics.commands.createIndexes.total
 serverStatus.metrics.commands.createRole.failed
 serverStatus.metrics.commands.createRole.total
 serverStatus.metrics.commands.createUser.failed
@@ -539,8 +538,6 @@ serverStatus.metrics.getLastError.wtime.totalMillis
 serverStatus.metrics.getLastError.wtimeouts
 serverStatus.metrics.operation.scanAndOrder
 serverStatus.metrics.operation.writeConflicts
-serverStatus.metrics.queryExecutor.scanned
-serverStatus.metrics.queryExecutor.scannedObjects
 serverStatus.metrics.record.moves
 serverStatus.metrics.repl.apply.attemptsToBecomeSecondary
 serverStatus.metrics.repl.apply.batches.num

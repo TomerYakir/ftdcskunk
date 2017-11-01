@@ -4,10 +4,13 @@ Python script to analyze ftdc data and output anomalies and detected correlation
 """
 import argparse
 import simplejson
-import json
 import time
 import numpy as np
 import subprocess
+import math
+
+def epoch_to_utc(timestamp):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp / 1000))
 
 def run_ftdc_util(diagnostics_data, temp_file):
     command = './ftdc export -o %s %s' % (temp_file, diagnostics_data)
@@ -29,16 +32,78 @@ def load_json_data():
         json_data.append(doc)
     return json_data
 
-def add_metric_to_timeseries(key, metric, setting):
+def get_z_score(val, mean, std):
+    if std != 0.0:
+        return (val - mean) / (std * z_test_stdev_factor)
+    else:
+        return 0
+
+def get_outliers_by_z_score(metric, arr, mean):
+    #print(metric)
+    std = np.std(arr)
+    metric["mean"] = mean
+    metric["std"] = std
+    z_scores = []
+    for val in raw_arr:
+        z_scores.append(get_z_score(val, mean, std))
+    metric["z_scores"] = z_scores
+    for val in z_scores:
+        if abs(val) > z_test_outlier_threshold and val > 0:
+            outlier = 1
+        elif abs(val) > z_test_outlier_threshold and val < 0:
+            outlier = -1
+        else:
+            outlier = 0
+        metric["outliers"].append(outlier)
+
+def analyze_outliers(metric, setting):
+    raw_arr = metric["values"]
+    arr = np.array(raw_arr)
+    min = np.min(arr)
+    mean = np.mean(arr)
+    max = np.max(arr)
+    metric("min") = min
+    metric("max") = max
+    if setting["outlier_detection_method"] == "z-test":
+        get_outliers_by_z_score(metric, arr)
+    if setting["outlier_detection_method"] == "thresholdAbove":
+        for val in raw_arr:
+            metric["outliers"].append(1 if val > setting["thresholdValue"] else 0)
+    if setting["outlier_detection_method"] == "thresholdBelow":
+        for val in raw_arr:
+            metric["outliers"].append(-1 if val < setting["thresholdValue"] else 0)
+    for i in xrange(len(raw_arr)):
+        if metric["outliers"][i] == 0:
+            metric["values_for_chart"][i]["type"] = "normal"
+        else:
+            metric["values_for_chart"][i]["type"] = "outlier"
+
+
+def add_metric_to_timeseries(key, metric, setting, timestamp):
     if not metrics.get(key):
         metrics[key] = {
             "values": [],
+            "values_for_chart": [],
             "outliers": [],
-            "z_scores": []
+            "z_scores": [],
+            "checked": False,
+            "mean": 0,
+            "min": 0,
+            "max": 0,
+            "displayName": setting["export_name"],
+            "code": setting["code"]
         }
-    if setting["raw_value_type"]
-
-
+    if setting["raw_value_type"] == "per_sec": # assumption - data is continuous
+        if len(metrics[key]["values"]):
+            prev_value = metrics[key]["values"][-1]
+        else:
+            prev_value = 0
+        metric = metric - prev_value
+    metrics[key]["values"].append(metric)
+    metrics[key]["values_for_chart"].append({
+        "date": epoch_to_utc(timestamp),
+        "value": metric
+    })
 
 temp_file = 'temp.json'
 metrics = {}
@@ -77,9 +142,48 @@ log_verbose("load JSON data")
 json_data = load_json_data()
 
 # process the info
+log_verbose("process information")
 for entry in json_data:
     timestamp = entry["start"]
     for key, metric in entry.items():
         if settings["metricsSettings"].get(key):
-            print("%s %s %s" % (timestamp, key, metric))
-            add_metric_to_timeseries(key, metric, settings["metricsSettings"][key])
+            add_metric_to_timeseries(key, metric, settings["metricsSettings"][key], timestamp)
+
+# find outliers
+log_verbose("analyze metrics")
+for key, metric in metrics.items():
+    analyze_outliers(metric, settings["metricsSettings"][key])
+
+# correlate
+log_verbose("analyze correlations")
+correlations = {}
+for key, metric in metrics.items():
+    for secondKey, secondMetric in metrics.items():
+        if key != secondKey and not correlations.get("%s_%s" % (key, secondKey)) and not correlations.get("%s_%s" % (secondKey, key)):
+            f_arr = np.array(metric["outliers"])
+            s_arr = np.array(secondMetric["outliers"])
+            corr = abs(round(np.corrcoef(f_arr, s_arr)[0, 1],3))
+            if math.isnan(corr):
+                corr = 0
+            correlations["%s_%s" % (key, secondKey)] = {
+                "MetricOne": metric["code"],
+                "MetricTwo": secondMetric["code"],
+                "Score": corr,
+                "Tooltip": "%s, %s, Correlation Score: %s" % (metric["displayName"], secondMetric["displayName"], corr)
+            }
+export_correlations = []
+for key, corr in correlations.items():
+    export_correlations.append(corr)
+
+# export to file
+export_metrics = {}
+
+for key, metric in metrics.items():
+    export_metrics[metric["code"]] = metric
+
+
+export_struct = {
+    "metrics": export_metrics,
+    "correlations": export_correlations
+    "processedMetrics": 984
+}
