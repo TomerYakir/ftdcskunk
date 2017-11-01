@@ -44,9 +44,9 @@
       "title": "#"
     },
     "serverStatus.connections.current": {
-      "raw_value_type": "per_sec",
+      "raw_value_type": "raw",
       "outlier_detection_method": "z-test",
-      "export_name": "connections_per_sec",
+      "export_name": "connections_current",
       "code": "G",
       "title": "#"
     },

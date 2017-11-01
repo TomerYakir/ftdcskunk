@@ -38,7 +38,7 @@ def get_z_score(val, mean, std):
     else:
         return 0
 
-def get_outliers_by_z_score(metric, arr, mean):
+def get_outliers_by_z_score(metric, arr, raw_arr, mean):
     #print(metric)
     std = np.std(arr)
     metric["mean"] = mean
@@ -59,13 +59,13 @@ def get_outliers_by_z_score(metric, arr, mean):
 def analyze_outliers(metric, setting):
     raw_arr = metric["values"]
     arr = np.array(raw_arr)
-    min = np.min(arr)
+    min_val = np.min(arr)
     mean = np.mean(arr)
-    max = np.max(arr)
-    metric("min") = min
-    metric("max") = max
+    max_val = np.max(arr)
+    metric["min"] = min_val
+    metric["max"] = max_val
     if setting["outlier_detection_method"] == "z-test":
-        get_outliers_by_z_score(metric, arr)
+        get_outliers_by_z_score(metric, arr, raw_arr, mean)
     if setting["outlier_detection_method"] == "thresholdAbove":
         for val in raw_arr:
             metric["outliers"].append(1 if val > setting["thresholdValue"] else 0)
@@ -77,7 +77,6 @@ def analyze_outliers(metric, setting):
             metric["values_for_chart"][i]["type"] = "normal"
         else:
             metric["values_for_chart"][i]["type"] = "outlier"
-
 
 def add_metric_to_timeseries(key, metric, setting, timestamp):
     if not metrics.get(key):
@@ -91,6 +90,7 @@ def add_metric_to_timeseries(key, metric, setting, timestamp):
             "min": 0,
             "max": 0,
             "displayName": setting["export_name"],
+            "fullName": key,
             "code": setting["code"]
         }
     if setting["raw_value_type"] == "per_sec": # assumption - data is continuous
@@ -179,11 +179,18 @@ for key, corr in correlations.items():
 export_metrics = {}
 
 for key, metric in metrics.items():
+    metric.pop("outliers", None)
+    metric.pop("z_scores", None)
+    metric["values"] = metric["values_for_chart"]
+    metric.pop("values_for_chart", None)
     export_metrics[metric["code"]] = metric
 
 
 export_struct = {
     "metrics": export_metrics,
-    "correlations": export_correlations
-    "processedMetrics": 984
+    "correlations": export_correlations,
+    "metricsProcessed": 984
 }
+
+from bson.json_util import dumps
+print(dumps(export_struct))
